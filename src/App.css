@@ -1,8 +1,10 @@
+/* Base Styles */
 body {
   margin: 0;
   padding: 0;
   font-family: Arial, sans-serif;
   overflow: hidden;
+  touch-action: pan-y; /* Enable vertical scroll but prevent horizontal */
 }
 
 .App {
@@ -11,15 +13,17 @@ body {
   position: relative;
 }
 
+/* Shared Game Container */
 .game-container {
   position: relative;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
   overflow: hidden;
   background-color: #333;
 }
 
-.game-controls {
+/* Shared UI Elements */
+.game-controls, .game-menu {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -29,9 +33,10 @@ body {
   border-radius: 10px;
   color: white;
   z-index: 100;
+  text-align: center;
 }
 
-.game-controls button {
+button {
   padding: 10px 20px;
   font-size: 18px;
   background-color: #4CAF50;
@@ -40,46 +45,11 @@ body {
   border-radius: 5px;
   cursor: pointer;
   margin: 10px 0;
+  transition: background-color 0.3s;
 }
 
-.game-controls button:hover {
+button:hover {
   background-color: #45a049;
-}
-
-.instructions {
-  margin-top: 20px;
-  font-size: 14px;
-}
-
-.score-display {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  background-color: rgba(0, 0, 0, 0.5);
-  color: white;
-  padding: 10px;
-  border-radius: 5px;
-  z-index: 100;
-}
-
-
-.game-container {
-  position: relative;
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
-}
-
-.car {
-  /* This will ensure the car doesn't get pixelated when scaled up */
-  image-rendering: -webkit-optimize-contrast;
-  image-rendering: crisp-edges;
-}
-
-
-/* Mobile Controls */
-.game-container {
-  touch-action: pan-y; /* Enable vertical scroll but prevent horizontal */
 }
 
 .back-button {
@@ -95,49 +65,71 @@ body {
   font-size: 18px;
 }
 
-/* Mobile Instructions */
-.mobile-instructions {
-  display: none;
-  position: fixed;
-  bottom: 20px;
-  width: 100%;
-  text-align: center;
+.score-display {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background-color: rgba(0, 0, 0, 0.5);
   color: white;
-  background: rgba(0, 0, 0, 0.5);
   padding: 10px;
+  border-radius: 5px;
+  z-index: 100;
 }
 
-@media (max-width: 768px) {
-  .mobile-instructions {
-    display: block;
-  }
+/* Car Game Specific */
+.car {
+  position: absolute;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  transition: left 0.2s ease;
 }
 
+/* Mobile Controls */
+.mobile-controls {
+  position: fixed;
+  bottom: 30px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  z-index: 100;
+}
 
+.control-button {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  font-size: 30px;
+  border: 3px solid white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+}
 
+.control-button:active {
+  background: rgba(255, 255, 255, 0.3);
+}
 
-
-
-
-
-/* puzzle game */
-
-
-
-/* Puzzle Game Styles */
+/* Puzzle Game Specific */
 .puzzle-game {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100vh;
+  height: 100%;
   background-color: #f0f0f0;
   color: #333;
 }
 
 .puzzle-board {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 2px;
   margin: 20px 0;
   background-color: #ddd;
@@ -145,16 +137,17 @@ body {
 }
 
 .puzzle-tile {
+  width: 80px;
+  height: 80px;
   background-color: #4CAF50;
   color: white;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
   cursor: pointer;
   user-select: none;
-  transition: transform 0.2s;
-}
-
-.puzzle-tile:hover {
-  transform: scale(1.05);
+  transition: all 0.2s;
 }
 
 .puzzle-tile.empty {
@@ -162,180 +155,70 @@ body {
   cursor: default;
 }
 
-.puzzle-controls {
-  margin: 10px 0;
-}
-
-.puzzle-controls button, .puzzle-controls select {
-  margin: 0 5px;
-  padding: 5px 10px;
-  font-size: 14px;
+.puzzle-tile:active {
+  background-color: #45a049 !important;
 }
 
 .puzzle-info {
   font-size: 18px;
-  margin-top: 10px;
+  margin: 10px 0;
 }
 
 .solved {
   color: #4CAF50;
   font-weight: bold;
+  animation: pulse 1s infinite;
 }
 
-
-.game-menu {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
 }
 
-.game-menu button {
-  padding: 15px 30px;
-  margin: 10px;
-  font-size: 18px;
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-.game-menu button:hover {
-  background-color: #45a049;
-}
-
-/* Prevent text selection during swipe */
-.puzzle-tile {
-  user-select: none;
-  -webkit-user-select: none;
-}
-
-/* Visual feedback on touch */
-.puzzle-tile:active {
-  background: #45a049 !important;
-  transition: background 0.1s;
-}
-
-/* Mobile Controls */
-.mobile-controls {
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .mobile-instructions {
+    display: block;
     position: fixed;
     bottom: 20px;
     width: 100%;
-    display: none; /* Hidden by default */
-    justify-content: space-between;
-    padding: 0 20px;
-    box-sizing: border-box;
-    z-index: 100;
-}
-
-.mobile-button {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
+    text-align: center;
+    color: white;
     background: rgba(0, 0, 0, 0.5);
-    color: white;
-    border: 2px solid white;
-    font-size: 2rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    touch-action: manipulation;
+    padding: 10px;
+  }
+  
+  .puzzle-tile {
+    width: 70px;
+    height: 70px;
+    font-size: 20px;
+  }
 }
 
-.left-button {
-    margin-right: auto;
+@media (min-width: 769px) {
+  .mobile-controls {
+    display: none;
+  }
+  
+  .mobile-instructions {
+    display: none;
+  }
 }
 
-.right-button {
-    margin-left: auto;
+/* Road Animation */
+.road {
+  position: absolute;
+  width: 100%;
+  height: 200%;
+  background-image: 
+    linear-gradient(to right, #555 10%, transparent 10%, transparent 90%, #555 90%),
+    linear-gradient(to bottom, #fff 0%, #fff 5%, transparent 5%, transparent 95%, #fff 95%);
+  background-size: 100% 100px;
+  animation: roadMove 5s linear infinite;
 }
 
-.back-button {
-    position: fixed;
-    top: 15px;
-    left: 15px;
-    padding: 10px 15px;
-    background: rgba(0, 0, 0, 0.7);
-    color: white;
-    border: none;
-    border-radius: 5px;
-    z-index: 100;
-}
-
-/* Show mobile controls only on mobile */
-@media (max-width: 768px) {
-    .mobile-controls {
-        display: flex;
-    }
-    .instructions p:first-child {
-        display: none; /* Hide keyboard instructions on mobile */
-    }
-}
-
-
-/* Mobile Controls */
-.mobile-controls {
-    position: fixed;
-    bottom: 30px;
-    left: 0;
-    right: 0;
-    display: flex;
-    justify-content: center;
-    gap: 40px;
-    z-index: 100;
-}
-
-.control-button {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    background: rgba(0, 0, 0, 0.5);
-    color: white;
-    font-size: 30px;
-    border: 3px solid white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    touch-action: manipulation;
-    user-select: none;
-}
-
-.control-button:active {
-    background: rgba(255, 255, 255, 0.3);
-}
-
-.left-button {
-    margin-right: 20px;
-}
-
-.right-button {
-    margin-left: 20px;
-}
-
-/* Back Button */
-.back-button {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    padding: 10px 15px;
-    background: rgba(0, 0, 0, 0.5);
-    color: white;
-    border: none;
-    border-radius: 5px;
-    z-index: 100;
-}
-
-/* Responsive adjustments */
-@media (min-width: 768px) {
-    .mobile-controls {
-        display: none;
-    }
-}
-
-.controls-info {
-    margin-top: 20px;
-    font-size: 14px;
-    color: #ccc;
+@keyframes roadMove {
+  from { transform: translateY(0); }
+  to { transform: translateY(-50%); }
 }

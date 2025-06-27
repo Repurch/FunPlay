@@ -14,10 +14,6 @@ const SPEED_INCREMENT = 0.1;
 const PLAYER_MOVEMENT = 5;
 const OBSTACLE_GENERATION_INTERVAL = 2000;
 const OBSTACLE_MOVEMENT_SPEED = 0.3;
-const CAR_WIDTH = 80;
-const CAR_HEIGHT = 160;
-const CAR_COLLISION_WIDTH = 12;
-const CAR_COLLISION_HEIGHT = 20;
 
 const Game = ({ onBackToMenu }) => {
     const [gameStarted, setGameStarted] = useState(false);
@@ -30,8 +26,7 @@ const Game = ({ onBackToMenu }) => {
     const animationFrameId = useRef(null);
     const lastObstacleTime = useRef(0);
     const speed = useRef(INITIAL_SPEED);
-    const touchActive = useRef(false);
-    const touchDirection = useRef(null);
+    const moveInterval = useRef(null);
 
     // Sound effects
     const soundEngine = useRef(null);
@@ -45,40 +40,33 @@ const Game = ({ onBackToMenu }) => {
             soundEngine.current.unload();
             soundCrash.current.unload();
             cancelAnimationFrame(animationFrameId.current);
+            clearInterval(moveInterval.current);
         };
     }, []);
 
-    // Touch event handlers
-    const handleTouchStart = (direction) => {
-        touchActive.current = true;
-        touchDirection.current = direction;
+    // Mobile control functions
+    const startMovingLeft = () => {
+        clearInterval(moveInterval.current);
+        moveInterval.current = setInterval(() => {
+            setPlayerPosition(prev => Math.max(5, prev - PLAYER_MOVEMENT));
+        }, 16); // ~60fps
     };
 
-    const handleTouchEnd = () => {
-        touchActive.current = false;
-        touchDirection.current = null;
+    const startMovingRight = () => {
+        clearInterval(moveInterval.current);
+        moveInterval.current = setInterval(() => {
+            setPlayerPosition(prev => Math.min(95, prev + PLAYER_MOVEMENT));
+        }, 16);
     };
 
-    // Handle continuous movement while touch is active
-    useEffect(() => {
-        if (!gameStarted || !touchActive.current) return;
+    const stopMoving = () => {
+        clearInterval(moveInterval.current);
+    };
 
-        const moveInterval = setInterval(() => {
-            if (touchDirection.current === 'left') {
-                setPlayerPosition(prev => Math.max(5, prev - PLAYER_MOVEMENT));
-            } else if (touchDirection.current === 'right') {
-                setPlayerPosition(prev => Math.min(95, prev + PLAYER_MOVEMENT));
-            }
-        }, 100);
-
-        return () => clearInterval(moveInterval);
-    }, [gameStarted]);
-
-    // Keyboard controls (unchanged)
+    // Keyboard controls
     useEffect(() => {
         const handleKeyDown = (e) => {
             if (!gameStarted) return;
-
             if (e.key === 'ArrowLeft') {
                 setPlayerPosition(prev => Math.max(5, prev - PLAYER_MOVEMENT));
             } else if (e.key === 'ArrowRight') {
@@ -90,21 +78,23 @@ const Game = ({ onBackToMenu }) => {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [gameStarted]);
 
-    // Game loop (unchanged)
+    // Game loop
     useEffect(() => {
         if (!gameStarted) return;
 
         const gameLoop = (timestamp) => {
+            // Generate new obstacles
             if (timestamp - lastObstacleTime.current > OBSTACLE_GENERATION_INTERVAL) {
                 const newObstacle = {
                     id: Date.now(),
                     left: Math.random() * 70 + 10,
-                    top: -20,
+                    top: -15,
                 };
                 setObstacles(prev => [...prev, newObstacle]);
                 lastObstacleTime.current = timestamp;
             }
 
+            // Move obstacles
             setObstacles(prev =>
                 prev.map(obstacle => ({
                     ...obstacle,
@@ -112,10 +102,11 @@ const Game = ({ onBackToMenu }) => {
                 })).filter(obstacle => obstacle.top < 100)
             );
 
+            // Check collisions
             const collision = obstacles.some(obstacle => {
                 return (
-                    Math.abs(playerPosition - obstacle.left) < CAR_COLLISION_WIDTH &&
-                    (80 - obstacle.top) < CAR_COLLISION_HEIGHT
+                    Math.abs(playerPosition - obstacle.left) < 12 &&
+                    (80 - obstacle.top) < 20
                 );
             });
 
@@ -124,6 +115,7 @@ const Game = ({ onBackToMenu }) => {
                 return;
             }
 
+            // Increase score
             setScore(prev => prev + 1);
             if (score % 100 === 0 && speed.current < MAX_SPEED) {
                 speed.current += SPEED_INCREMENT;
@@ -154,6 +146,7 @@ const Game = ({ onBackToMenu }) => {
         soundCrash.current.play();
         if (score > highScore) setHighScore(score);
         cancelAnimationFrame(animationFrameId.current);
+        clearInterval(moveInterval.current);
     };
 
     return (
@@ -164,21 +157,21 @@ const Game = ({ onBackToMenu }) => {
             <div className="mobile-controls">
                 <button
                     className="control-button left-button"
-                    onTouchStart={() => handleTouchStart('left')}
-                    onTouchEnd={handleTouchEnd}
-                    onMouseDown={() => handleTouchStart('left')}
-                    onMouseUp={handleTouchEnd}
-                    onMouseLeave={handleTouchEnd}
+                    onTouchStart={startMovingLeft}
+                    onTouchEnd={stopMoving}
+                    onMouseDown={startMovingLeft}
+                    onMouseUp={stopMoving}
+                    onMouseLeave={stopMoving}
                 >
                     ←
                 </button>
                 <button
                     className="control-button right-button"
-                    onTouchStart={() => handleTouchStart('right')}
-                    onTouchEnd={handleTouchEnd}
-                    onMouseDown={() => handleTouchStart('right')}
-                    onMouseUp={handleTouchEnd}
-                    onMouseLeave={handleTouchEnd}
+                    onTouchStart={startMovingRight}
+                    onTouchEnd={stopMoving}
+                    onMouseDown={startMovingRight}
+                    onMouseUp={stopMoving}
+                    onMouseLeave={stopMoving}
                 >
                     →
                 </button>
@@ -209,7 +202,7 @@ const Game = ({ onBackToMenu }) => {
                     </button>
                     <div className="controls-info">
                         <p>Keyboard: ← → arrows</p>
-                        <p>Mobile: Tap buttons below</p>
+                        <p>Mobile: Press and hold buttons</p>
                     </div>
                 </div>
             )}
