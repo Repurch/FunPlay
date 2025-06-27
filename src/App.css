@@ -172,4 +172,15 @@ body {
   background-color: #45a049;
 }
 
+/* Prevent text selection during swipe */
+.puzzle-tile {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Visual feedback on touch */
+.puzzle-tile:active {
+  background: #45a049 !important;
+  transition: background 0.1s;
+}
 
