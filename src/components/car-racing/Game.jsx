@@ -7,21 +7,19 @@ import Score from './Score';
 import engineSound from '../../assets/engine.mp3';
 import crashSound from '../../assets/crash.mp3';
 
-// Game constants for better control
+// Game constants
 const INITIAL_SPEED = 2;
 const MAX_SPEED = 8;
 const SPEED_INCREMENT = 0.1;
 const PLAYER_MOVEMENT = 5;
-const OBSTACLE_GENERATION_INTERVAL = 2000; // ms
+const OBSTACLE_GENERATION_INTERVAL = 2000;
 const OBSTACLE_MOVEMENT_SPEED = 0.3;
+const CAR_WIDTH = 80;
+const CAR_HEIGHT = 160;
+const CAR_COLLISION_WIDTH = 12;
+const CAR_COLLISION_HEIGHT = 20;
 
-// Car dimensions and collision
-const CAR_WIDTH = 80; // pixels
-const CAR_HEIGHT = 160; // pixels
-const CAR_COLLISION_WIDTH = 12; // collision boundary
-const CAR_COLLISION_HEIGHT = 20; // collision boundary
-
-const Game = () => {
+const Game = ({ onBackToMenu }) => {
     const [gameStarted, setGameStarted] = useState(false);
     const [gameOver, setGameOver] = useState(false);
     const [score, setScore] = useState(0);
@@ -32,47 +30,51 @@ const Game = () => {
     const animationFrameId = useRef(null);
     const lastObstacleTime = useRef(0);
     const speed = useRef(INITIAL_SPEED);
+    const touchActive = useRef(false);
+    const touchDirection = useRef(null);
 
-    // Sound effects with error handling
+    // Sound effects
     const soundEngine = useRef(null);
     const soundCrash = useRef(null);
 
     useEffect(() => {
-        try {
-            soundEngine.current = new Howl({ src: [engineSound], loop: true, volume: 0.5 });
-            soundCrash.current = new Howl({ src: [crashSound], volume: 0.7 });
-        } catch (error) {
-            console.error("Error loading sounds:", error);
-        }
+        soundEngine.current = new Howl({ src: [engineSound], loop: true, volume: 0.5 });
+        soundCrash.current = new Howl({ src: [crashSound], volume: 0.7 });
 
         return () => {
-            if (soundEngine.current) soundEngine.current.unload();
-            if (soundCrash.current) soundCrash.current.unload();
+            soundEngine.current.unload();
+            soundCrash.current.unload();
             cancelAnimationFrame(animationFrameId.current);
         };
     }, []);
 
-    const startGame = () => {
-        setGameStarted(true);
-        setGameOver(false);
-        setScore(0);
-        setObstacles([]);
-        setPlayerPosition(50);
-        speed.current = INITIAL_SPEED;
-        lastObstacleTime.current = 0;
-        if (soundEngine.current) soundEngine.current.play();
+    // Touch event handlers
+    const handleTouchStart = (direction) => {
+        touchActive.current = true;
+        touchDirection.current = direction;
     };
 
-    const endGame = () => {
-        setGameOver(true);
-        setGameStarted(false);
-        if (soundEngine.current) soundEngine.current.stop();
-        if (soundCrash.current) soundCrash.current.play();
-        if (score > highScore) setHighScore(score);
-        cancelAnimationFrame(animationFrameId.current);
+    const handleTouchEnd = () => {
+        touchActive.current = false;
+        touchDirection.current = null;
     };
 
-    // Handle keyboard input
+    // Handle continuous movement while touch is active
+    useEffect(() => {
+        if (!gameStarted || !touchActive.current) return;
+
+        const moveInterval = setInterval(() => {
+            if (touchDirection.current === 'left') {
+                setPlayerPosition(prev => Math.max(5, prev - PLAYER_MOVEMENT));
+            } else if (touchDirection.current === 'right') {
+                setPlayerPosition(prev => Math.min(95, prev + PLAYER_MOVEMENT));
+            }
+        }, 100);
+
+        return () => clearInterval(moveInterval);
+    }, [gameStarted]);
+
+    // Keyboard controls (unchanged)
     useEffect(() => {
         const handleKeyDown = (e) => {
             if (!gameStarted) return;
@@ -88,23 +90,21 @@ const Game = () => {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [gameStarted]);
 
-    // Game loop
+    // Game loop (unchanged)
     useEffect(() => {
         if (!gameStarted) return;
 
         const gameLoop = (timestamp) => {
-            // Generate new obstacles
             if (timestamp - lastObstacleTime.current > OBSTACLE_GENERATION_INTERVAL) {
                 const newObstacle = {
                     id: Date.now(),
-                    left: Math.random() * 70 + 10, // Adjusted range for larger cars
-                    top: -20, // Start higher to account for taller cars
+                    left: Math.random() * 70 + 10,
+                    top: -20,
                 };
                 setObstacles(prev => [...prev, newObstacle]);
                 lastObstacleTime.current = timestamp;
             }
 
-            // Move obstacles
             setObstacles(prev =>
                 prev.map(obstacle => ({
                     ...obstacle,
@@ -112,7 +112,6 @@ const Game = () => {
                 })).filter(obstacle => obstacle.top < 100)
             );
 
-            // Check collisions with updated values
             const collision = obstacles.some(obstacle => {
                 return (
                     Math.abs(playerPosition - obstacle.left) < CAR_COLLISION_WIDTH &&
@@ -125,7 +124,6 @@ const Game = () => {
                 return;
             }
 
-            // Increase score and gradually increase speed
             setScore(prev => prev + 1);
             if (score % 100 === 0 && speed.current < MAX_SPEED) {
                 speed.current += SPEED_INCREMENT;
@@ -138,9 +136,58 @@ const Game = () => {
         return () => cancelAnimationFrame(animationFrameId.current);
     }, [gameStarted, playerPosition, obstacles, score]);
 
+    const startGame = () => {
+        setGameStarted(true);
+        setGameOver(false);
+        setScore(0);
+        setObstacles([]);
+        setPlayerPosition(50);
+        speed.current = INITIAL_SPEED;
+        lastObstacleTime.current = 0;
+        soundEngine.current.play();
+    };
+
+    const endGame = () => {
+        setGameOver(true);
+        setGameStarted(false);
+        soundEngine.current.stop();
+        soundCrash.current.play();
+        if (score > highScore) setHighScore(score);
+        cancelAnimationFrame(animationFrameId.current);
+    };
+
     return (
         <div className="game-container" ref={gameAreaRef}>
             <Road />
+
+            {/* Mobile Controls */}
+            <div className="mobile-controls">
+                <button
+                    className="control-button left-button"
+                    onTouchStart={() => handleTouchStart('left')}
+                    onTouchEnd={handleTouchEnd}
+                    onMouseDown={() => handleTouchStart('left')}
+                    onMouseUp={handleTouchEnd}
+                    onMouseLeave={handleTouchEnd}
+                >
+                    ←
+                </button>
+                <button
+                    className="control-button right-button"
+                    onTouchStart={() => handleTouchStart('right')}
+                    onTouchEnd={handleTouchEnd}
+                    onMouseDown={() => handleTouchStart('right')}
+                    onMouseUp={handleTouchEnd}
+                    onMouseLeave={handleTouchEnd}
+                >
+                    →
+                </button>
+            </div>
+
+            {/* Back Button */}
+            <button className="back-button" onClick={onBackToMenu}>
+                ← Menu
+            </button>
 
             {gameStarted && (
                 <>
@@ -154,15 +201,15 @@ const Game = () => {
             <Score score={score} highScore={highScore} />
 
             {!gameStarted && (
-                <div className="game-controls">
-                    <h1>Mini Car Racing Game</h1>
-                    {gameOver && <h2>Game Over! Your score: {score}</h2>}
+                <div className="game-menu">
+                    <h1>Car Racing</h1>
+                    {gameOver && <h2>Game Over! Score: {score}</h2>}
                     <button onClick={startGame}>
-                        {gameOver ? 'Play Again' : 'Start Game'}
+                        {gameOver ? 'Play Again' : 'Start Race'}
                     </button>
-                    <div className="instructions">
-                        <p>Use <strong>Left</strong> and <strong>Right</strong> arrow keys to move</p>
-                        <p>Avoid other cars and score points!</p>
+                    <div className="controls-info">
+                        <p>Keyboard: ← → arrows</p>
+                        <p>Mobile: Tap buttons below</p>
                     </div>
                 </div>
             )}

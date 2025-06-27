@@ -77,7 +77,41 @@ body {
 }
 
 
+/* Mobile Controls */
+.game-container {
+  touch-action: pan-y; /* Enable vertical scroll but prevent horizontal */
+}
 
+.back-button {
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  padding: 10px 15px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  z-index: 100;
+  font-size: 18px;
+}
+
+/* Mobile Instructions */
+.mobile-instructions {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  width: 100%;
+  text-align: center;
+  color: white;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 10px;
+}
+
+@media (max-width: 768px) {
+  .mobile-instructions {
+    display: block;
+  }
+}
 
 
 
@@ -184,3 +218,124 @@ body {
   transition: background 0.1s;
 }
 
+/* Mobile Controls */
+.mobile-controls {
+    position: fixed;
+    bottom: 20px;
+    width: 100%;
+    display: none; /* Hidden by default */
+    justify-content: space-between;
+    padding: 0 20px;
+    box-sizing: border-box;
+    z-index: 100;
+}
+
+.mobile-button {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: 2px solid white;
+    font-size: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: manipulation;
+}
+
+.left-button {
+    margin-right: auto;
+}
+
+.right-button {
+    margin-left: auto;
+}
+
+.back-button {
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    padding: 10px 15px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    z-index: 100;
+}
+
+/* Show mobile controls only on mobile */
+@media (max-width: 768px) {
+    .mobile-controls {
+        display: flex;
+    }
+    .instructions p:first-child {
+        display: none; /* Hide keyboard instructions on mobile */
+    }
+}
+
+
+/* Mobile Controls */
+.mobile-controls {
+    position: fixed;
+    bottom: 30px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    z-index: 100;
+}
+
+.control-button {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    font-size: 30px;
+    border: 3px solid white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: manipulation;
+    user-select: none;
+}
+
+.control-button:active {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.left-button {
+    margin-right: 20px;
+}
+
+.right-button {
+    margin-left: 20px;
+}
+
+/* Back Button */
+.back-button {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    padding: 10px 15px;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    z-index: 100;
+}
+
+/* Responsive adjustments */
+@media (min-width: 768px) {
+    .mobile-controls {
+        display: none;
+    }
+}
+
+.controls-info {
+    margin-top: 20px;
+    font-size: 14px;
+    color: #ccc;
+}

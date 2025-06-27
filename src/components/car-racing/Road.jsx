@@ -20,8 +20,8 @@ const Road = () => {
       <style>
         {`
           @keyframes roadMovement {
-            0% { transform: translateY(0); }
-            100% { transform: translateY(-50%); }
+            0% { transform: translateY(-50%); }
+            100% { transform: translateY(0%); }
           }
         `}
       </style>

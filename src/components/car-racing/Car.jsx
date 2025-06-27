@@ -9,7 +9,7 @@ const Car = ({ position, isPlayer, top }) => {
   const carStyle = {
     position: 'absolute',
     left: `${position}%`,
-    top: top ? `${top}%` : '80%',
+    top: top ? `${top}%` : '60%',
     width: '80px',  // Increased from 50px
     height: '160px', // Increased from 100px
     backgroundSize: 'contain',
